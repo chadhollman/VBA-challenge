@@ -1,0 +1,110 @@
+Sub stock_data()
+
+Dim total As Double
+    Dim i As Long
+    Dim change As Double
+    Dim j As Long
+    Dim start As Long
+    Dim lastrow As Long
+    Dim percentchange As Double
+    Dim dates As Long
+    Dim dailychange As Double
+    Dim avgchange As Double
+    Dim increasenumber As Long
+    Dim decreasenumber As Long
+    Dim volumenumber As Long
+    Dim ws As Worksheet
+
+    Range("I1").Value = "Ticker"
+    Range("J1").Value = "Quarterly Change"
+    Range("K1").Value = "Percent Change"
+    Range("L1").Value = "Total Stock Volume"
+    Range("O2").Value = "Greatest % Increase"
+    Range("O3").Value = "Greatest % Decrease"
+    Range("O4").Value = "Greatest Total Volume"
+    Range("P1").Value = "Ticker"
+    Range("Q1").Value = "Value"
+
+    j = 0
+    total = 0
+    change = 0
+
+    For Each ws In Worksheets
+    
+        lastrow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+        start = 2
+
+        For i = 2 To lastrow
+            If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+                total = total + ws.Cells(i, 7).Value
+
+                If total = 0 Then
+                    Range("I" & 2 + j).Value = ws.Cells(i, 1).Value
+                    Range("J" & 2 + j).Value = 0
+                    Range("K" & 2 + j).Value = "%" & 0
+                    Range("L" & 2 + j).Value = 0
+
+                Else
+                    If ws.Cells(start, 3) = 0 Then
+                        For find_value = start To i
+                            If ws.Cells(find_value, 3).Value <> 0 Then
+                                start = find_value
+                                Exit For
+                            End If
+                        Next find_value
+                    End If
+
+                    change = (ws.Cells(i, 6) - ws.Cells(start, 3))
+
+                    
+                    If ws.Cells(start, 3).Value <> 0 Then
+                        percentchange = change / ws.Cells(start, 3)
+                    Else
+                        percentchange = 0
+                    End If
+
+                    start = i + 1
+
+                    Range("I" & 2 + j).Value = ws.Cells(i, 1).Value
+                    Range("J" & 2 + j).Value = change
+                    Range("J" & 2 + j).NumberFormat = "0.00"
+                    Range("K" & 2 + j).Value = percentchange
+                    Range("K" & 2 + j).NumberFormat = "0.00%"
+                    Range("L" & 2 + j).Value = total
+
+                    Select Case change
+                        Case Is > 0
+                            Range("J" & 2 + j).Interior.ColorIndex = 4
+                        Case Is < 0
+                            Range("J" & 2 + j).Interior.ColorIndex = 3
+                        Case Else
+                            Range("J" & 2 + j).Interior.ColorIndex = 0
+                    End Select
+                End If
+
+                total = 0
+                change = 0
+                j = j + 1
+                dates = 0
+            Else
+                total = total + ws.Cells(i, 7).Value
+            End If
+        Next i
+    Next ws
+
+    
+    Range("Q2") = "%" & WorksheetFunction.Max(Range("K2:K" & j + 1)) * 100
+    Range("Q3") = "%" & WorksheetFunction.Min(Range("K2:K" & j + 1)) * 100
+    Range("Q4") = WorksheetFunction.Max(Range("L2:L" & j + 1))
+
+    increasenumber = WorksheetFunction.Match(WorksheetFunction.Max(Range("K2:K" & j + 1)), Range("K2:K" & j + 1), 0)
+    decreasenumber = WorksheetFunction.Match(WorksheetFunction.Min(Range("K2:K" & j + 1)), Range("K2:K" & j + 1), 0)
+    volumenumber = WorksheetFunction.Match(WorksheetFunction.Max(Range("L2:L" & j + 1)), Range("L2:L" & j + 1), 0)
+
+    Range("P2") = Cells(increasenumber + 1, 9)
+    Range("P3") = Cells(decreasenumber + 1, 9)
+    Range("P4") = Cells(volumenumber + 1, 9)
+
+
+    Exit Sub
+End Sub
